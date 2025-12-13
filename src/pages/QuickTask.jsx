@@ -179,7 +179,7 @@ const submitSelectedTasks = async () => {
   try {
     setSubmitting(true);
     
-    const userAppScriptUrl = "https://script.google.com/macros/s/AKfycbyPJT9aAXFq9A3Z0S3PCZTd8OhT5jdDXYjhkftgLVlWKadfH5ACcWx8AODGesaA4yeuLQ/exec";
+    const userAppScriptUrl = "https://script.google.com/macros/s/AKfycbyhY8hTvrWZ0knAC2o_UsAyYwxvJvhuqT-TxIuXL3Q1KEbbi4FErhiunmeDCodnA6u3/exec";
     const userSheetId = CONFIG.SHEET_ID;
     
     if (!userAppScriptUrl || !userSheetId) {
@@ -270,7 +270,7 @@ const submitSelectedTasks = async () => {
 
 
   const CONFIG = {
-    SHEET_ID: "1gNtEDmeK8hdcg1NJ-N2Em8lrrVAjCB3aSPO9Lubvq94",
+    SHEET_ID: "1AS3KirmWI_Rk_PbP-I-GWRrv-GYUKvAYjgH7AkrFg-k",
     WHATSAPP_SHEET: "master", // For login credentials and user roles
     CHECKLIST_SHEET: "Unique", // For unique checklist tasks
     DELEGATION_SHEET: "Delegation", // For delegation tasks

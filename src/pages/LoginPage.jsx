@@ -40,13 +40,13 @@ const LoginPage = () => {
   useEffect(() => {
     const fetchMasterData = async () => {
       const SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbyPJT9aAXFq9A3Z0S3PCZTd8OhT5jdDXYjhkftgLVlWKadfH5ACcWx8AODGesaA4yeuLQ/exec";
+        "https://script.google.com/macros/s/AKfycbyhY8hTvrWZ0knAC2o_UsAyYwxvJvhuqT-TxIuXL3Q1KEbbi4FErhiunmeDCodnA6u3/exec";
 
       try {
         setIsDataLoading(true);
 
         // Get the spreadsheet ID from your Apps Script
-        const SPREADSHEET_ID = "1gNtEDmeK8hdcg1NJ-N2Em8lrrVAjCB3aSPO9Lubvq94";
+        const SPREADSHEET_ID = "1AS3KirmWI_Rk_PbP-I-GWRrv-GYUKvAYjgH7AkrFg-k";
 
         // Construct the URL to read the sheet data directly
         const sheetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=master`;

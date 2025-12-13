@@ -25,7 +25,7 @@ export default function DelegationPage({
   const CONFIG = useMemo(
     () => ({
       APPS_SCRIPT_URL:
-        "https://script.google.com/macros/s/AKfycbyPJT9aAXFq9A3Z0S3PCZTd8OhT5jdDXYjhkftgLVlWKadfH5ACcWx8AODGesaA4yeuLQ/exec",
+        "https://script.google.com/macros/s/AKfycbyhY8hTvrWZ0knAC2o_UsAyYwxvJvhuqT-TxIuXL3Q1KEbbi4FErhiunmeDCodnA6u3/exec",
       DELEGATION_SHEET: "Delegation",
     }),
     []
