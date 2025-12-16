@@ -52,7 +52,7 @@ function AccountDataPage() {
   const [endDate, setEndDate] = useState("");
   const [userRole, setUserRole] = useState("");
   const [username, setUsername] = useState("");
-
+  const [dateFilter, setDateFilter] = useState("all");
   // NEW: Admin history selection states
   const [selectedHistoryItems, setSelectedHistoryItems] = useState([]);
   const [markingAsDone, setMarkingAsDone] = useState(false);
@@ -467,6 +467,37 @@ const stopCamera = () => {
     setEndDate("");
   };
 
+
+
+  const getDateFilterCounts = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    let todayCount = 0;
+    let upcomingCount = 0;
+    let overdueCount = 0;
+    
+    accountData.forEach(acc => {
+      const dateStr = acc["col6"] || "";
+      const datePart = dateStr.split(" ")[0];
+      const parsedDate = parseDateFromDDMMYYYY(datePart);
+      if (!parsedDate) return;
+      
+      const taskDate = new Date(parsedDate);
+      taskDate.setHours(0, 0, 0, 0);
+      const dayDiff = Math.ceil((taskDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+      
+      if (dayDiff === 0) todayCount++;
+      else if (dayDiff > 0) upcomingCount++;
+      else if (dayDiff < 0) overdueCount++;
+    });
+    
+    return { todayCount, upcomingCount, overdueCount };
+  };
+  
+
+
+
   // NEW: Edit functionality functions
   const handleEditClick = (historyItem) => {
     const rowId = historyItem._id;
@@ -661,6 +692,36 @@ const stopCamera = () => {
     );
   };
 
+
+
+  const getFilteredByDateStatus = (data) => {
+    if (dateFilter === "all") return data;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return data.filter((account) => {
+      const dateStr = account["col6"] || "";
+      if (!dateStr) return false;
+      
+      const datePart = dateStr.split(" ")[0];
+      const parsedDate = parseDateFromDDMMYYYY(datePart);
+      if (!parsedDate) return false;
+      
+      const taskDate = new Date(parsedDate);
+      taskDate.setHours(0, 0, 0, 0);
+      
+      const timeDiff = taskDate.getTime() - today.getTime();
+      const dayDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      
+      if (dateFilter === "today") return dayDiff === 0;
+      if (dateFilter === "upcoming") return dayDiff > 0;
+      if (dateFilter === "overdue") return dayDiff < 0;
+      
+      return true;
+    });
+  };
+
   // UPDATED: Admin Done submission handler - Store "Done" text instead of timestamp
   const confirmMarkDone = async () => {
     // Close the modal
@@ -727,7 +788,6 @@ const stopCamera = () => {
     );
   }, [selectedItems, additionalData]);
 
-  // Memoized filtered data to prevent unnecessary re-renders
   const filteredAccountData = useMemo(() => {
     const filtered = searchTerm
       ? accountData.filter((account) =>
@@ -738,8 +798,10 @@ const stopCamera = () => {
           )
         )
       : accountData;
-    return filtered.sort(sortDateWise);
-  }, [accountData, searchTerm]);
+    
+    const dateFiltered = getFilteredByDateStatus(filtered);
+    return dateFiltered.sort(sortDateWise);
+  }, [accountData, searchTerm, dateFilter]);
 
   const filteredHistoryData = useMemo(() => {
     return historyData
@@ -827,6 +889,12 @@ const stopCamera = () => {
       );
     }
   };
+
+
+
+ 
+  
+
 
 // UPDATED: fetchSheetData - Show only data where Column K is null
 const fetchSheetData = useCallback(async () => {
@@ -1329,23 +1397,76 @@ const handleCameraCapture = useCallback((id, file) => {
               )}
             </button> */}
 
-            {/* Submit button (only when not history view) */}
-            {!showHistory && (
-              <button
-                onClick={handleSubmit}
-                disabled={!isSubmitEnabled || isSubmitting}
-                className={`rounded-md py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 w-full sm:w-auto ${
-                  isSubmitEnabled && !isSubmitting
-                    ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 cursor-pointer"
-                    : "bg-gray-400 cursor-not-allowed opacity-50"
-                }`}
-              >
-                {isSubmitting
-                  ? "Processing..."
-                  : `Submit Selected (${selectedItemsCount})`}
-              </button>
-            )}
+{/* Date Filter Dropdown - Add this RIGHT BEFORE the desktop table */}
+{!showHistory && (
+  <div className="p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      {/* Filter Label & Info */}
+      <div className="flex items-center gap-2">
+        <div className="bg-purple-100 p-2 rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-purple-700">Task Filters</h3>
+          <p className="text-xs text-purple-600">Filter tasks by date status</p>
+        </div>
+      </div>
 
+      {/* Dropdown */}
+      <div className="relative w-full sm:w-72">
+        <select
+          id="date-filter"
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          className="w-full px-4 py-2.5 pr-10 border-2 border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm text-sm font-medium text-gray-700 appearance-none cursor-pointer hover:border-purple-300 transition-all"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b21a8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 0.75rem center',
+            backgroundSize: '1.25rem'
+          }}
+        >
+          <option value="all">
+             All Tasks ({accountData.length})
+          </option>
+          <option value="today">
+             Today ({getDateFilterCounts().todayCount})
+          </option>
+          <option value="upcoming">
+             Upcoming ({getDateFilterCounts().upcomingCount})
+          </option>
+          <option value="overdue">
+             Overdue ({getDateFilterCounts().overdueCount})
+          </option>
+        </select>
+      </div>
+    </div>
+
+    {/* Active Filter Badge - Shows which filter is active */}
+    {dateFilter !== "all" && (
+      <div className="mt-3 flex items-center gap-2">
+        <span className="text-xs text-purple-600">Active filter:</span>
+        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
+          dateFilter === "today" ? "bg-amber-100 text-amber-700" :
+          dateFilter === "upcoming" ? "bg-blue-100 text-blue-700" :
+          "bg-red-100 text-red-700"
+        }`}>
+          {dateFilter === "today" && "Today"}
+          {dateFilter === "upcoming" && " Upcoming"}
+          {dateFilter === "overdue" && " Overdue"}
+          <button
+            onClick={() => setDateFilter("all")}
+            className="ml-1 hover:bg-black/10 rounded-full p-0.5 transition-colors"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </span>
+      </div>
+    )}
+  </div>
+)}
             {/* Admin Submit Button for History View */}
             {showHistory &&
               userRole === "admin" &&
